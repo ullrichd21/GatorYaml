@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "GatorYaml"
+version = "0.1.0"
+description = "Custom YAML-like generator for GatorGrader config files."
+authors = ["Danny Ullrich", "Paige Downey"]
+license = "MIT"
+packages = [
+    { include = "gatoryaml" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.7,<4.0"
+
+[tool.poetry.dev-dependencies]
+taskipy = "^1.9.0"
+pylint = "^2.12.2"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+
+[tool.taskipy.tasks]
+test = "pytest --cov-report term-missing --cov-fail-under=70  --cov-branch --cov=gatoryaml tests/"
+lint = "pylint gatoryaml/ tests/"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
