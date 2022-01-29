@@ -1,106 +1,102 @@
 """Converts dictionaries to GatorYAML"""
-from gatorconfig.split_file_path import split_file_path
 
 
-class GatorYaml:
-    """Main GatorYaml object"""
+def dump(header, body, indent=4, spaces=4):
+    """Input dictionary is parsed. returns string of valid YAML"""
+    return Parser(header, body, indent, spaces).do_parse()
 
-    def __init__(self, indent=4, spaces=4):
+
+class Parser:
+    """Parser object"""
+
+    def __init__(self, header, body, indent=4, spaces=4):
         """Init GatorYAML object. Takes optional arguments to change indent of files
         and how many spaces is considered a tab """
         self.spaces = spaces  # How many spaces is a tab
         self.tabs = -1  # Current tab level
         self.output = ""  # Init output
-        self.keywords = ["(pure)", "commits"]  # Any keywords to look for
+        self.keywords = ["(pure)"]  # Any keywords to look for
         self.indents = indent  # set indent for file path
+        self.header = header
+        self.body = body
 
-    def dump(self, dic, paths=None):
-        """Input dictionary is parsed. returns string of valid YAML"""
-
-        if paths is not None:
-            if isinstance(paths, dict):
-                dic["files"] = split_file_path(paths)
-            else:
-                raise Exception("Paths expected to be \"dict\", got " + str(type(paths)) + "!")
-
-        self.enum_dict(dic)
+    def do_parse(self):
+        self.enum_dict_header(self.header)
+        self.enum_dict_body(split_file_path(self.body))
 
         return self.output
 
-    def enum_list(self, list_in):
+    def enum_list_header(self, list_in):
         """Enumerate through input list and output each item unless it finds another dictionary."""
         for i in list_in:
             if isinstance(i, dict):
                 self.tabs += 1
-                self.enum_dict(i)
+                self.enum_dict_header(i)
             else:
-                self.output_list_item(i)
+                self.output_list_item_header(i)
 
-    def enum_dict(self, dic):
+    def enum_dict_header(self, header):
         """Enumerate through input dictionary and output each key"""
         self.tabs += 1
 
-        for k in dic.keys():
-            if k == "indent":
-                self.indents = int(dic[k])
-
-            if k == "files":
-                self.tabs -= 1
-                # if isinstance(d[k], list):
-                #     self.enum_list(d[k])
-                if isinstance(dic[k], dict):
-                    self.enum_file_dict(dic[k])
-            elif isinstance(dic[k], list):
-                self.output_key(k)
-                self.enum_list(dic[k])
-            elif isinstance(dic[k], dict):
-                self.output_key(k)
-                self.enum_dict(dic[k])
+        for key in header.keys():
+            if isinstance(header[key], list):
+                self.output_key_header(key)
+                self.enum_list_header(header[key])
+            elif isinstance(header[key], dict):
+                self.output_key_header(key)
+                self.enum_dict_header(header[key])
             else:
-                if not self.is_keyword(k, dic[k]):
-                    self.output_key_value(k, dic[k])
+                if header[key] == "":
+                    self.output_key_header(key, pure=True)
+                else:
+                    self.output_key_header(key, value=header[key])
 
         self.tabs -= 1
 
-    def enum_file_dict(self, files):
+    def enum_dict_body(self, body):
         """Enumerate through the file list dictionary and output each key"""
         self.tabs += 1
 
-        for k in files:
-            if isinstance(files[k], dict):
-                self.output_key(k)
-                self.enum_file_dict(files[k])
-            elif isinstance(files[k], list):
-                self.output_key(k)
-                self.enum_file_list(files[k])
+        for key in body:
+            if isinstance(body[key], dict):
+                self.output_key_header(key)
+                self.enum_dict_body(body[key])
+            elif isinstance(body[key], list):
+                self.output_key_header(key)
+                self.enum_list_body(body[key])
 
         self.tabs -= 1
 
-    def enum_file_list(self, list_in):
+    def enum_list_body(self, list_in):
         """Enumerate through each file key's parameter list items"""
         for item in list_in:
             self.output += (" " * self.spaces) * self.indents + str(item) + "\n"
 
-    def output_list_item(self, item):
+    def output_list_item_header(self, item):
         """Output a generic list item"""
         self.output += (" " * self.spaces) * self.tabs + " -" + str(item) + "\n"
 
-    def output_key(self, key):
-        """Output a generic key"""
-        self.output += (" " * self.spaces) * self.tabs + str(key) + ":\n"
+    def output_key_header(self, key, value="", pure=False):
+        """Output a key"""
+        if pure:
+            self.output += (" " * self.spaces) * self.tabs + str(key) + "\n"
+        if value != "":  # Append a space to value if it exists.
+            value = " " + str(value) + " "
+        self.output += (" " * self.spaces) * self.tabs + str(key) + ":" + value + "\n"
 
-    def output_key_value(self, key, value):
-        """Output a generic key and it's value"""
-        self.output += ((" " * self.spaces) * self.tabs) + str(key) + ": " + str(value) + "\n"
 
-    def is_keyword(self, key, value):
-        """Output key and value if a keyword"""
-        if key in self.keywords:
-            if key == "commits":
-                self.output += (" " * self.spaces) * self.tabs \
-                               + "--" + str(key) + " " + str(value) + "\n"
-            else:
-                self.output += (" " * self.spaces) * self.tabs + str(key) \
-                               + " " + str(value) + "\n"
-            return True
-        return False
+def split_file_path(paths: dict) -> dict:
+    """Convert files paths stored in a dict to nested dicts.
+    Author: @PaigeCD / Paige Downey"""
+    output = {}
+    for key, value in paths.items():
+        directories = key.split('/')
+        dir_dic = output
+        for directory in directories[:-1]:
+            if directory not in dir_dic:
+                dir_dic[directory] = {}
+            dir_dic = dir_dic[directory]
+        dir_dic[directories[-1]] = value
+
+    return output

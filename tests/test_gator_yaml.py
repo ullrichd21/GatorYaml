@@ -14,7 +14,7 @@ from gatorconfig.gator_yaml import GatorYaml
 def test_output_key(key, expected):
     """Test for gator_yaml output_key function"""
     yaml = GatorYaml()
-    yaml.output_key(key)
+    yaml.output_header(key)
     assert yaml.output == expected
 
 
@@ -29,7 +29,7 @@ def test_output_key(key, expected):
 def test_output_key_value(key, value, expected):
     """Test for gator_yaml output_key_value function"""
     yaml = GatorYaml()
-    yaml.output_key_value(key, value)
+    yaml.output_key_value_header(key, value)
     assert yaml.output == expected
 
 
@@ -58,7 +58,7 @@ def test_is_keyword(key, value, expected):
 def test_output_list_item(item, expected):
     """Test for gator_yaml output_list_item function"""
     yaml = GatorYaml()
-    yaml.output_list_item(item)
+    yaml.output_list_item_header(item)
     assert yaml.output == expected
 
 
@@ -98,7 +98,7 @@ def test_dump(dic, expected):
 def test_enum_file_list(list_in, expected):
     """Test for gator_yaml enum_file_list function"""
     yaml = GatorYaml()
-    yaml.enum_file_list(list_in)
+    yaml.enum_list_body(list_in)
     assert yaml.output == expected
 
 
@@ -117,5 +117,5 @@ def test_enum_file_list(list_in, expected):
 def test_enum_file_dict(files, expected):
     """Test for gator_yaml enum_file_dict function"""
     yaml = GatorYaml()
-    yaml.enum_file_dict(files)
+    yaml.enum_dict_body(files)
     assert yaml.output == expected
