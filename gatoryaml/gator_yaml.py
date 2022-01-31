@@ -4,8 +4,8 @@ from .exceptions import UnexpectedValue
 
 def dump(header, body, indent=4, spaces=4) -> str:
     """Input dictionary is parsed. returns string of valid YAML"""
-
-    output = parse_header(header)
+    output = "---\n"
+    output += parse_header(header)
     output += "---\n"
     output += parse_body(split_file_path(body), indent=indent, spaces=spaces)
     return output
