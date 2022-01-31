@@ -34,10 +34,11 @@ def parse_body(body, output="", tabs=-1, indent=4, spaces=4, custom_keywords=Non
     If a keyword is found, special output instructions can be defined.
     If the dictionary key has no value it will be output as a parameter."""
     keywords = ["(pure)"]
-    if custom_keywords is not None and isinstance(custom_keywords, list):
-        keywords += custom_keywords
-    else:
-        raise Exception("Expected a list for custom_keywords, got " + str(type(custom_keywords)))
+    if custom_keywords is not None:
+        if isinstance(custom_keywords, list):
+            keywords += custom_keywords
+        else:
+            raise Exception("Expected a list for custom_keywords, got " + str(type(custom_keywords)))
 
     tabs += 1
     for key in body:
