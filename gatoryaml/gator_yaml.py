@@ -6,6 +6,7 @@ def dump(header, body, indent=4, spaces=4) -> str:
     """Input dictionary is parsed. returns string of valid YAML"""
 
     output = parse_header(header)
+    output += "---\n"
     output += parse_body(split_file_path(body), indent=indent, spaces=spaces)
     return output
 
@@ -17,11 +18,8 @@ def parse_header(header) -> str:
         out += str(key) + ": "
 
         if isinstance(val, list):
-            for element in val:
-                if element != val[-1]:
-                    out += str(element) + ", "
-                else:
-                    out += str(element) + "\n"
+            out += ", ".join(str(x) for x in val)
+            out += "\n"
         else:
             out += str(val) + "\n"
     return out
@@ -51,7 +49,7 @@ def parse_body(body, output="", tabs=-1, indent=4, spaces=4, custom_keywords=Non
         elif key in keywords:
             output += str(key) + "\n"
         elif body[key] is None or body[key] == "":
-            output += "--" + str(key) + "\n"
+            output += str(key) + "\n"
         else:
             raise UnexpectedValue(f"{str(body[key])} was not an expected value.")
 
@@ -71,7 +69,7 @@ def output_key_header(key, tabs, spaces=4, value="") -> str:
     """Output a key"""
     output = ""
 
-    if value != "":  # Append a space to value if it exists.
+    if value != "":  # Prepend a space to value if it exists.
         value = " " + str(value)
     output += (" " * spaces) * tabs + str(key) + ":" + value + "\n"
     return output

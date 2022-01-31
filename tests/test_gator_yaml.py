@@ -48,8 +48,8 @@ def test_parse_header(header, expected):
                                                                         "                --one 1 --two 2 --three 3\n"),
         ({"listy!": ["item1", "Item2", True]}, "listy!:\n                item1\n"
                                                "                Item2\n                True\n"),
-        ({"commits": ""}, "--commits\n"),
-        ({"commits": None}, "--commits\n")
+        ({"commits": ""}, "commits\n"),
+        ({"commits": None}, "commits\n")
     ],
 )
 def test_parse_body(body, expected):
