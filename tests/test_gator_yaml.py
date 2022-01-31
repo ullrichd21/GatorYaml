@@ -4,24 +4,24 @@ import gatoryaml
 
 
 @pytest.mark.parametrize(
-    "key,value,tabs,spaces,expected",
+    "key,value,tabs,expected",
     [
-        ("test", "", 0, 4, "test:\n"),
-        ("key_1", True, 1, 2, "  key_1: True\n"),
+        ("test", "", 0, "test:\n"),
+        ("key_1", True, 1, "    key_1: True\n"),
     ],
 )
-def test_output_key_header(key, value, tabs, spaces, expected):
+def test_output_key_header(key, value, tabs, expected):
     """Test for gator_yaml output_key function"""
-    assert gatoryaml.output_key_header(key, value=value, tabs=tabs, spaces=spaces) == expected
+    assert gatoryaml.output_key_header(key, value=value, tabs=tabs) == expected
 
 
 @pytest.mark.parametrize(
     "header,expected",
     [
         ({"break": True, "fastfail": True, "List": ["One", "Two"]},
-         "break: True\nfastfail: True\nList: One, Two\n"),
-        ({"break": True}, "break: True\n"),
-        ({"listy!": ["item1", "Item2", True]}, "listy!: item1, Item2, True\n"),
+         ("break: True\nfastfail: True\nList: One, Two\n", 4)),
+        ({"break": True}, ("break: True\n", 4)),
+        ({"listy!": ["item1", "Item2", True]}, ("listy!: item1, Item2, True\n", 4)),
     ],
 )
 def test_parse_header(header, expected):
@@ -39,15 +39,19 @@ def test_parse_header(header, expected):
           'writing': {'reflection.md': ['--one 1 --two 2 --three 3']}}, "gatorconfig:\n    main:\n        "
                                                                         "java:\n            samplelab:\n"
                                                                         "                SampleLabMain.java:\n"
-                                                                        "                --one 1 --two 2 --three 3\n"
-                                                                        "                --uno 1 --dos 2\n"
+                                                                        "                    --one 1 "
+                                                                        "--two 2 --three 3\n"
+                                                                        "                    --uno 1 --dos 2\n"
                                                                         "                DataClass.java:\n"
-                                                                        "                --one 1 --two 2 --three 3\n"
-                                                                        "                --ichi 1 --ni 2\nwriting:\n"
+                                                                        "                    --one 1 "
+                                                                        "--two 2 --three 3\n"
+                                                                        "                    --ichi 1"
+                                                                        " --ni 2\nwriting:\n"
                                                                         "    reflection.md:\n"
-                                                                        "                --one 1 --two 2 --three 3\n"),
-        ({"listy!": ["item1", "Item2", True]}, "listy!:\n                item1\n"
-                                               "                Item2\n                True\n"),
+                                                                        "        --one 1"
+                                                                        " --two 2 --three 3\n"),
+        ({"listy!": ["item1", "Item2", True]}, "listy!:\n    item1\n"
+                                               "    Item2\n    True\n"),
         ({"commits": ""}, "commits\n"),
         ({"commits": None}, "commits\n")
     ],
@@ -58,12 +62,12 @@ def test_parse_body(body, expected):
 
 
 @pytest.mark.parametrize(
-    "list_in,spaces,indent,expected",
+    "list_in,tabs,indent,expected",
     [
-        (["--test 1", "--test 2"], 4, 2, "        --test 1\n        --test 2\n"),
-        (["--single 1 --language Java"], 4, 0, "--single 1 --language Java\n"),
+        (["--test 1", "--test 2"], 2, 4, "            --test 1\n            --test 2\n"),
+        (["--single 1 --language Java"], 4, 4, "                    --single 1 --language Java\n"),
     ],
 )
-def test_print_list_body(list_in, spaces, indent, expected):
+def test_print_list_body(list_in, tabs, indent, expected):
     """Test for gator_yaml enum_file_list function"""
-    assert gatoryaml.print_list_body(list_in, spaces=spaces, indent=indent) == expected
+    assert gatoryaml.print_list_body(list_in, tabs=tabs, indent=indent) == expected
