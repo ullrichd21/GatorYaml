@@ -49,7 +49,7 @@ def parse_body(body, output="", tabs=-1, indent=4, custom_keywords=None) -> str:
         elif isinstance(body[key], list):
             output += output_key_header(key, tabs=tabs, indent=indent)
             output = print_list_body(body[key], tabs=tabs, output=output, indent=indent)
-        elif any(keyword in body[key] for keyword in keywords):
+        elif any(keyword in str(body[key]) for keyword in keywords):
             output += (" " * indent) * tabs + str(body[key]) + "\n"
         elif body[key] is None or body[key] == "":
             output += (" " * indent) * tabs + str(key) + "\n"
@@ -85,26 +85,20 @@ def split_file_path(paths: dict) -> dict:
     popped = {}
     for key, value in paths.items():
         if value is not None and value != "":
-            if "/" in key:
-                directories = key.split('/')
-            else:
-                directories = [key]
+            if "/" not in key:
+                key = key + "/"
+            directories = key.split('/')
             dir_dic = output
 
-            print(directories)
-
-            for directory in directories:
+            for directory in directories[:-1]:
                 if directory not in dir_dic:
                     dir_dic[directory] = {}
                 dir_dic = dir_dic[directory]
-
-            print(f">>>>{directories[-1]}, {value}")
-            print(f"DIC:\n{dir_dic}")
-            dir_dic[directories[-1]] = value
-
+            try:
+                dir_dic[directories[-1]] = value
+            except TypeError:
+                print(f"Something went wrong trying to add {directories[-1]} to the following dictionary:\n{dir_dic}\n")
         else:
             popped[key] = value
-
-        print("\n\n")
 
     return output | popped

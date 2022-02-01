@@ -29,4 +29,5 @@ def test_output_as_dic():
 def test_dic_nesting(test_input, expected):
     """Ensure directories are nested correctly."""
     output = gatoryaml.split_file_path(test_input)
+    print(output)
     assert output == expected
