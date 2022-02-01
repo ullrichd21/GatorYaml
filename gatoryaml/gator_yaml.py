@@ -1,4 +1,5 @@
 """Converts dictionaries to GatorYAML"""
+import typing
 from .exceptions import UnexpectedValue
 
 
