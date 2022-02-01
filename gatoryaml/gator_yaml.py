@@ -1,5 +1,5 @@
 """Converts dictionaries to GatorYAML"""
-import typing
+from typing import Tuple
 from .exceptions import UnexpectedValue
 
 
@@ -13,7 +13,7 @@ def dump(header, body, indent=4) -> str:
     return output
 
 
-def parse_header(header, indent=4) -> tuple[str, int]:
+def parse_header(header, indent=4) -> Tuple[str, int]:
     """Parses header dictionary"""
     out = ""
     for key, val in header.items():
