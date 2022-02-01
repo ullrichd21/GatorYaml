@@ -49,12 +49,12 @@ def parse_body(body, output="", tabs=-1, indent=4, custom_keywords=None) -> str:
         elif isinstance(body[key], list):
             output += output_key_header(key, tabs=tabs, indent=indent)
             output = print_list_body(body[key], tabs=tabs, output=output, indent=indent)
-        elif key in keywords:
-            output += (" " * indent) * tabs + str(key) + "\n"
+        elif any(keyword in body[key] for keyword in keywords):
+            output += (" " * indent) * tabs + str(body[key]) + "\n"
         elif body[key] is None or body[key] == "":
             output += (" " * indent) * tabs + str(key) + "\n"
         else:
-            raise UnexpectedValue(f"{str(body[key])} was not an expected value.")
+            raise UnexpectedValue(f"{str(key)} with value {body[key]} was not an expected value.")
 
     tabs -= 1
     return output
@@ -82,13 +82,29 @@ def split_file_path(paths: dict) -> dict:
     """Convert files paths stored in a dict to nested dicts.
     Author: @PaigeCD / Paige Downey"""
     output = {}
+    popped = {}
     for key, value in paths.items():
-        directories = key.split('/')
-        dir_dic = output
-        for directory in directories[:-1]:
-            if directory not in dir_dic:
-                dir_dic[directory] = {}
-            dir_dic = dir_dic[directory]
-        dir_dic[directories[-1]] = value
+        if value is not None and value != "":
+            if "/" in key:
+                directories = key.split('/')
+            else:
+                directories = [key]
+            dir_dic = output
 
-    return output
+            print(directories)
+
+            for directory in directories:
+                if directory not in dir_dic:
+                    dir_dic[directory] = {}
+                dir_dic = dir_dic[directory]
+
+            print(f">>>>{directories[-1]}, {value}")
+            print(f"DIC:\n{dir_dic}")
+            dir_dic[directories[-1]] = value
+
+        else:
+            popped[key] = value
+
+        print("\n\n")
+
+    return output | popped
