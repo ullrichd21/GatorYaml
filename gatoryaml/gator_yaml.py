@@ -1,106 +1,105 @@
 """Converts dictionaries to GatorYAML"""
-from gatorconfig.split_file_path import split_file_path
+from typing import Tuple
+from .exceptions import UnexpectedValue
 
 
-class GatorYaml:
-    """Main GatorYaml object"""
+def dump(header, body, indent=4) -> str:
+    """Input dictionary is parsed. returns string of valid YAML"""
+    output = "---\n"
+    header_out, indent = parse_header(header, indent)
+    output += header_out
+    output += "---\n"
+    output += parse_body(split_file_path(body), indent=indent)
+    return output
 
-    def __init__(self, indent=4, spaces=4):
-        """Init GatorYAML object. Takes optional arguments to change indent of files
-        and how many spaces is considered a tab """
-        self.spaces = spaces  # How many spaces is a tab
-        self.tabs = -1  # Current tab level
-        self.output = ""  # Init output
-        self.keywords = ["(pure)", "commits"]  # Any keywords to look for
-        self.indents = indent  # set indent for file path
 
-    def dump(self, dic, paths=None):
-        """Input dictionary is parsed. returns string of valid YAML"""
+def parse_header(header, indent=4) -> Tuple[str, int]:
+    """Parses header dictionary"""
+    out = ""
+    for key, val in header.items():
+        out += str(key) + ": "
 
-        if paths is not None:
-            if isinstance(paths, dict):
-                dic["files"] = split_file_path(paths)
-            else:
-                raise Exception("Paths expected to be \"dict\", got " + str(type(paths)) + "!")
+        if isinstance(val, list):
+            out += ", ".join(str(x) for x in val)
+            out += "\n"
+        else:
+            out += str(val) + "\n"
 
-        self.enum_dict(dic)
+        if key == "indent":
+            indent = val
 
-        return self.output
+    return out, indent
 
-    def enum_list(self, list_in):
-        """Enumerate through input list and output each item unless it finds another dictionary."""
-        for i in list_in:
-            if isinstance(i, dict):
-                self.tabs += 1
-                self.enum_dict(i)
-            else:
-                self.output_list_item(i)
 
-    def enum_dict(self, dic):
-        """Enumerate through input dictionary and output each key"""
-        self.tabs += 1
+def parse_body(body, output="", tabs=-1, indent=4, custom_keywords=None) -> str:
+    """Enumerate through the body dictionary and output each key & values.
+    If a keyword is found, special output instructions can be defined.
+    If the dictionary key has no value it will be output as a parameter."""
+    keywords = ["(pure)"]
+    if custom_keywords is not None:
+        if isinstance(custom_keywords, list):
+            keywords += custom_keywords
+        else:
+            raise Exception("Expected a list for custom_keywords, got " + str(type(custom_keywords)))
 
-        for k in dic.keys():
-            if k == "indent":
-                self.indents = int(dic[k])
+    tabs += 1
+    for key in body:
+        if isinstance(body[key], dict):
+            output += output_key_header(key, tabs=tabs, indent=indent)
+            output = parse_body(body[key], tabs=tabs, output=output)
+        elif isinstance(body[key], list):
+            output += output_key_header(key, tabs=tabs, indent=indent)
+            output = print_list_body(body[key], tabs=tabs, output=output, indent=indent)
+        elif any(keyword in str(body[key]) for keyword in keywords):
+            output += (" " * indent) * tabs + str(body[key]) + "\n"
+        elif body[key] is None or body[key] == "":
+            output += (" " * indent) * tabs + str(key) + "\n"
+        else:
+            raise UnexpectedValue(f"{str(key)} with value {body[key]} was not an expected value.")
 
-            if k == "files":
-                self.tabs -= 1
-                # if isinstance(d[k], list):
-                #     self.enum_list(d[k])
-                if isinstance(dic[k], dict):
-                    self.enum_file_dict(dic[k])
-            elif isinstance(dic[k], list):
-                self.output_key(k)
-                self.enum_list(dic[k])
-            elif isinstance(dic[k], dict):
-                self.output_key(k)
-                self.enum_dict(dic[k])
-            else:
-                if not self.is_keyword(k, dic[k]):
-                    self.output_key_value(k, dic[k])
+    tabs -= 1
+    return output
 
-        self.tabs -= 1
 
-    def enum_file_dict(self, files):
-        """Enumerate through the file list dictionary and output each key"""
-        self.tabs += 1
+def print_list_body(list_in, tabs, output="", indent=4):
+    """Enumerate through each file key's parameter list items"""
+    tabs += 1
+    for item in list_in:
+        output += (" " * indent) * tabs + str(item) + "\n"
+    return output
 
-        for k in files:
-            if isinstance(files[k], dict):
-                self.output_key(k)
-                self.enum_file_dict(files[k])
-            elif isinstance(files[k], list):
-                self.output_key(k)
-                self.enum_file_list(files[k])
 
-        self.tabs -= 1
+def output_key_header(key, tabs, value="", indent=4) -> str:
+    """Output a key"""
+    output = ""
 
-    def enum_file_list(self, list_in):
-        """Enumerate through each file key's parameter list items"""
-        for item in list_in:
-            self.output += (" " * self.spaces) * self.indents + str(item) + "\n"
+    if value != "":  # Prepend a space to value if it exists.
+        value = " " + str(value)
+    output += (" " * indent) * tabs + str(key) + ":" + value + "\n"
+    return output
 
-    def output_list_item(self, item):
-        """Output a generic list item"""
-        self.output += (" " * self.spaces) * self.tabs + " -" + str(item) + "\n"
 
-    def output_key(self, key):
-        """Output a generic key"""
-        self.output += (" " * self.spaces) * self.tabs + str(key) + ":\n"
+def split_file_path(paths: dict) -> dict:
+    """Convert files paths stored in a dict to nested dicts.
+    Author: @PaigeCD / Paige Downey"""
+    output = {}
+    popped = {}
+    for key, value in paths.items():
+        if value is not None and value != "":
+            if "/" not in key:
+                key = key + "/"
+            directories = key.split('/')
+            dir_dic = output
 
-    def output_key_value(self, key, value):
-        """Output a generic key and it's value"""
-        self.output += ((" " * self.spaces) * self.tabs) + str(key) + ": " + str(value) + "\n"
+            for directory in directories[:-1]:
+                if directory not in dir_dic:
+                    dir_dic[directory] = {}
+                dir_dic = dir_dic[directory]
+            try:
+                dir_dic[directories[-1]] = value
+            except TypeError:
+                print(f"Something went wrong trying to add {directories[-1]} to the following dictionary:\n{dir_dic}\n")
+        else:
+            popped[key] = value
 
-    def is_keyword(self, key, value):
-        """Output key and value if a keyword"""
-        if key in self.keywords:
-            if key == "commits":
-                self.output += (" " * self.spaces) * self.tabs \
-                               + "--" + str(key) + " " + str(value) + "\n"
-            else:
-                self.output += (" " * self.spaces) * self.tabs + str(key) \
-                               + " " + str(value) + "\n"
-            return True
-        return False
+    return {**output, **popped}

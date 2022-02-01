@@ -17,3 +17,6 @@ __pycache__/
 # Temporary files
 *~
 *.swp
+
+# Pycharm
+.idea
