@@ -101,4 +101,4 @@ def split_file_path(paths: dict) -> dict:
         else:
             popped[key] = value
 
-    return output | popped
+    return {**output, **popped}
