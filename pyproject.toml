@@ -1,11 +1,18 @@
 [tool.poetry]
 name = "GatorYaml"
-version = "0.1.0"
+version = "1.0.0"
 description = "Custom YAML-like generator for GatorGrader config files."
 authors = ["Danny Ullrich", "Paige Downey"]
 license = "MIT"
+keywords = ["GatorYAML", "YAML", "Gator", "GatorGrader", "GatorConfig"]
+readme = "README.md"
+homepage = "https://github.com/ullrichd21/GatorYaml"
+repository = "https://github.com/ullrichd21/GatorYaml"
 packages = [
     { include = "gatoryaml" }
+]
+include = [
+    "LICENSE",
 ]
 
 [tool.poetry.dependencies]
