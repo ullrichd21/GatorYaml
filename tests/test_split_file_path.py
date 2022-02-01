@@ -1,13 +1,13 @@
 """Test split_file_path function."""
 
 import pytest
-from gatorconfig.split_file_path import split_file_path
+import gatoryaml
 
 
 def test_output_as_dic():
     """Ensure output is a dictionary."""
     input_dic = {"sample/file.py": ['']}
-    output = split_file_path(input_dic)
+    output = gatoryaml.split_file_path(input_dic)
     assert isinstance(output, dict)
 
 @pytest.mark.parametrize(
@@ -28,5 +28,6 @@ def test_output_as_dic():
 
 def test_dic_nesting(test_input, expected):
     """Ensure directories are nested correctly."""
-    output = split_file_path(test_input)
+    output = gatoryaml.split_file_path(test_input)
+    print(output)
     assert output == expected

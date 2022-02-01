@@ -18,7 +18,7 @@ pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
 
 [tool.taskipy.tasks]
-test = "pytest --cov-report term-missing --cov-fail-under=70  --cov-branch --cov=gatoryaml tests/"
+test = "pytest --cov-report term-missing --cov-fail-under=70  --cov-branch --cov=gatoryaml tests/ --ignore=./gatoryaml/test_ignored/"
 lint = "pylint gatoryaml/ tests/"
 
 [build-system]
