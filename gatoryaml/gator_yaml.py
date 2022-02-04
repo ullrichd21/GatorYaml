@@ -86,8 +86,6 @@ def split_file_path(paths: dict) -> dict:
     popped = {}
     for key, value in paths.items():
         if value is not None and value != "":
-            if "/" not in key:
-                key = key + "/"
             directories = key.split('/')
             dir_dic = output
 
